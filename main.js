@@ -3,12 +3,12 @@ import { summarize } from './src/summarizer.js';
 import { formatDigest } from './src/formatter.js';
 import { sendDigest } from './src/sender.js';
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_TOKEN = process.env.GH_TOKEN;
 const DEBUG = process.env.DEBUG === 'true';
 
 function validateEnv() {
   const missing = [];
-  if (!GITHUB_TOKEN) missing.push('GITHUB_TOKEN');
+  if (!GITHUB_TOKEN) missing.push('GH_TOKEN');
   if (!process.env.TELEGRAM_BOT_TOKEN) missing.push('TELEGRAM_BOT_TOKEN');
   if (!process.env.TELEGRAM_CHAT_ID) missing.push('TELEGRAM_CHAT_ID');
   if (missing.length > 0) {
