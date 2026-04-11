@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 /**
  * Send the formatted digest directly to Telegram
  */
