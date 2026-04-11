@@ -1,0 +1,21 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Run every 2 days to keep the repo active
+    - cron: '0 0 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep alive
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git commit --allow-empty -m "chore: keep alive [skip ci]"
+          git push
