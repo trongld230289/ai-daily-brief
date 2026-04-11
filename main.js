@@ -1,25 +1,16 @@
-/**
- * main.js
- * Entry point — orchestrates the AI Daily Brief pipeline:
- *   1. Fetch news from HackerNews, ArXiv, HuggingFace
- *   2. Summarize using GitHub Copilot API
- *   3. Format into a Vietnamese markdown digest
- *   4. Send to OpenClaw webhook
- */
-
 import { fetchAll } from './src/fetcher.js';
 import { summarize } from './src/summarizer.js';
 import { formatDigest } from './src/formatter.js';
 import { sendDigest } from './src/sender.js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const OPENCLAW_WEBHOOK_URL = process.env.OPENCLAW_WEBHOOK_URL;
 const DEBUG = process.env.DEBUG === 'true';
 
 function validateEnv() {
   const missing = [];
   if (!GITHUB_TOKEN) missing.push('GITHUB_TOKEN');
-  if (!OPENCLAW_WEBHOOK_URL) missing.push('OPENCLAW_WEBHOOK_URL');
+  if (!process.env.TELEGRAM_BOT_TOKEN) missing.push('TELEGRAM_BOT_TOKEN');
+  if (!process.env.TELEGRAM_CHAT_ID) missing.push('TELEGRAM_CHAT_ID');
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
@@ -73,8 +64,8 @@ async function run() {
   }
 
   // Step 4: Send
-  console.log('\n[pipeline] Step 4/4 — Sending to OpenClaw webhook…');
-  await sendDigest(digest, OPENCLAW_WEBHOOK_URL);
+  console.log('\n[pipeline] Step 4/4 — Sending to Telegram…');
+  await sendDigest(digest);
 
   console.log('\n========================================');
   console.log('  AI Daily Brief — pipeline complete!');
