@@ -2,8 +2,8 @@ name: AI Daily Brief
 
 on:
   schedule:
-    # 2:00 PM UTC = 9:00 PM GMT+7 (Vietnam time)
-    - cron: '0 14 * * *'
+    # 2:10 PM UTC = 9:10 PM GMT+7 (Vietnam time)
+    - cron: '10 14 * * *'
   workflow_dispatch:
     inputs:
       reason:
