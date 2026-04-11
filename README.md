@@ -1,6 +1,6 @@
 # AI Daily Brief
 
-A GitHub Actions workflow that runs every day at **8:00 AM GMT+7** (1:00 AM UTC), fetches the latest AI news and research papers, summarizes them using the GitHub Copilot API, and sends the digest to an OpenClaw webhook.
+A GitHub Actions workflow that runs every day at **8:00 AM GMT+7** (1:00 AM UTC), fetches the latest AI news and research papers, summarizes them using the **GitHub Models API (GPT-4o)**, and sends the digest directly to **Telegram**.
 
 ## What it does
 
@@ -9,11 +9,11 @@ A GitHub Actions workflow that runs every day at **8:00 AM GMT+7** (1:00 AM UTC)
    - [ArXiv cs.AI](https://arxiv.org/list/cs.AI/recent) — latest AI research papers via RSS
    - [HuggingFace Papers](https://huggingface.co/papers) — top 5 trending papers
 
-2. **Summarizes** all content using the GitHub Copilot API (OpenAI-compatible endpoint)
+2. **Summarizes** all content using the **GitHub Models API** (`gpt-4o`) — free with GitHub Pro/Pro+
 
 3. **Formats** a clean Vietnamese markdown digest
 
-4. **Sends** the digest to your OpenClaw webhook
+4. **Sends** the digest directly to your **Telegram** chat
 
 ## Output Format
 
@@ -50,20 +50,12 @@ Go to your repository → **Settings** → **Secrets and variables** → **Actio
 
 | Secret name | Description |
 |---|---|
-| `GITHUB_TOKEN` | Your GitHub Personal Access Token with **`models:read`** scope (or use the auto-injected `GITHUB_TOKEN` for GitHub Copilot API access via `github.token`) |
-| `OPENCLAW_WEBHOOK_URL` | Your OpenClaw webhook URL (see below) |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram Bot token (get from [@BotFather](https://t.me/BotFather)) |
+| `TELEGRAM_CHAT_ID` | Your Telegram chat/user ID (send a message to your bot, then check `https://api.telegram.org/bot<TOKEN>/getUpdates`) |
 
-> **Note on `GITHUB_TOKEN`:** GitHub Actions automatically provides a `GITHUB_TOKEN` secret for the repository, but it may not have access to the GitHub Models API. If you get authentication errors, create a **Personal Access Token (PAT)** at https://github.com/settings/tokens with the `models:read` permission and add it as a repository secret named `GITHUB_TOKEN`.
+> **Note on GitHub token:** No PAT needed! The workflow uses the auto-injected `github.token` with `models: read` permission to call the GitHub Models API for free.
 
-### 3. How to get an OpenClaw webhook URL
-
-1. Open [OpenClaw](https://openclaw.com) and sign in
-2. Navigate to **Settings** → **Integrations** → **Webhooks**
-3. Click **Create Webhook**
-4. Copy the generated webhook URL
-5. Paste it as the `OPENCLAW_WEBHOOK_URL` secret in your GitHub repository
-
-### 4. Verify the workflow is enabled
+### 3. Verify the workflow is enabled
 
 Go to your repository → **Actions** tab → make sure Actions are enabled. The workflow will automatically run at **1:00 AM UTC (8:00 AM GMT+7)** every day.
 
@@ -86,7 +78,6 @@ You can trigger the workflow manually at any time:
 ### Prerequisites
 
 - Node.js 20+
-- A GitHub token with GitHub Models access
 
 ### Install
 
@@ -99,8 +90,9 @@ npm install
 ### Run locally
 
 ```bash
-export GITHUB_TOKEN=your_github_token
-export OPENCLAW_WEBHOOK_URL=your_webhook_url
+export GH_TOKEN=your_github_token
+export TELEGRAM_BOT_TOKEN=your_bot_token
+export TELEGRAM_CHAT_ID=your_chat_id
 
 node main.js
 ```
@@ -126,9 +118,9 @@ ai-daily-brief/
 │       └── daily-brief.yml   # Cron workflow (runs at 1 AM UTC daily)
 ├── src/
 │   ├── fetcher.js            # Fetch news from HN, ArXiv, HuggingFace
-│   ├── summarizer.js         # Summarize via GitHub Copilot API
+│   ├── summarizer.js         # Summarize via GitHub Models API (gpt-4o)
 │   ├── formatter.js          # Format digest as Vietnamese markdown
-│   └── sender.js             # POST to OpenClaw webhook
+│   └── sender.js             # Send digest to Telegram
 ├── main.js                   # Orchestration entry point
 ├── package.json
 └── README.md
@@ -140,9 +132,19 @@ ai-daily-brief/
 
 | Variable | Required | Description |
 |---|---|---|
-| `GITHUB_TOKEN` | Yes | GitHub token for Copilot API authentication |
-| `OPENCLAW_WEBHOOK_URL` | Yes | OpenClaw webhook URL to receive the digest |
+| `GH_TOKEN` | Yes (local only) | GitHub token for Models API (auto-injected in Actions) |
+| `TELEGRAM_BOT_TOKEN` | Yes | Telegram Bot token to send messages |
+| `TELEGRAM_CHAT_ID` | Yes | Telegram chat ID to receive the digest |
 | `DEBUG` | No | Set to `true` for verbose logging |
+
+---
+
+## Cost
+
+**$0/month** — completely free:
+- GitHub Actions: free for public repos
+- GitHub Models API (gpt-4o): free with GitHub Pro/Pro+
+- Telegram Bot API: always free
 
 ---
 
