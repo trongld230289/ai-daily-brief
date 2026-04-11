@@ -1,58 +1,40 @@
-/**
- * sender.js
- * POSTs the digest to an OpenClaw webhook.
- */
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 3000;
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import fetch from 'node-fetch';
 
 /**
- * Send the digest to the OpenClaw webhook.
- *
- * @param {string} text          - The formatted digest markdown text
- * @param {string} webhookUrl    - The OpenClaw webhook URL (env: OPENCLAW_WEBHOOK_URL)
- * @returns {Promise<void>}
+ * Send the formatted digest directly to Telegram
  */
-export async function sendDigest(text, webhookUrl) {
-  if (!webhookUrl) {
-    throw new Error('OPENCLAW_WEBHOOK_URL environment variable is not set');
+export async function sendToWebhook(text) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!botToken) throw new Error('TELEGRAM_BOT_TOKEN environment variable is not set');
+  if (!chatId) throw new Error('TELEGRAM_CHAT_ID environment variable is not set');
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+  // Telegram has a 4096 char limit per message — split if needed
+  const chunks = [];
+  for (let i = 0; i < text.length; i += 4000) {
+    chunks.push(text.slice(i, i + 4000));
   }
-  if (!text || !text.trim()) {
-    throw new Error('Digest text is empty, nothing to send');
-  }
 
-  const payload = JSON.stringify({ text });
-  console.log(`[sender] Sending digest (${text.length} chars) to webhook…`);
+  for (const chunk of chunks) {
+    console.log('[Sender] Posting digest to Telegram...');
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: chunk,
+        parse_mode: 'Markdown',
+      }),
+    });
 
-  let lastError;
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const res = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'AI-Daily-Brief/1.0',
-        },
-        body: payload,
-      });
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`Webhook responded with ${res.status}: ${body.slice(0, 200)}`);
-      }
-
-      console.log(`[sender] Digest delivered successfully (HTTP ${res.status}).`);
-      return;
-    } catch (err) {
-      lastError = err;
-      console.error(`[sender] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
-      if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY_MS);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Telegram POST failed: ${res.status} ${res.statusText}\n${body}`);
     }
   }
 
-  throw new Error(`Failed to deliver digest after ${MAX_RETRIES} attempts: ${lastError?.message}`);
+  console.log('[Sender] Digest sent successfully to Telegram.');
 }

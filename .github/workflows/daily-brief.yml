@@ -6,21 +6,21 @@ on:
     - cron: '0 1 * * *'
   workflow_dispatch:
     inputs:
-      debug:
-        description: 'Enable debug logging'
+      reason:
+        description: 'Reason for manual trigger'
         required: false
-        default: 'false'
+        default: 'Manual test run'
 
 jobs:
-  daily-brief:
+  send-brief:
+    name: Fetch, Summarize & Send
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -31,7 +31,7 @@ jobs:
 
       - name: Run AI Daily Brief
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENCLAW_WEBHOOK_URL: ${{ secrets.OPENCLAW_WEBHOOK_URL }}
-          DEBUG: ${{ github.event.inputs.debug || 'false' }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: node main.js
