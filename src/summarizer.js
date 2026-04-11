@@ -6,7 +6,7 @@
  */
 
 const BASE_URL = 'https://models.inference.ai.azure.com';
-const MODEL = 'claude-sonnet-4-5';
+const MODEL = 'gpt-4o';
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 
