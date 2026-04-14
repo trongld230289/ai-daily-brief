@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 /**
  * Send the formatted digest directly to Telegram
  */
-export async function sendToWebhook(text) {
+export async function sendDigest(text) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
