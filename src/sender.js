@@ -18,7 +18,10 @@ export async function sendDigest(text) {
     chunks.push(text.slice(i, i + 4000));
   }
 
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    console.log(`[Sender] Chunk ${i+1}/${chunks.length} (${chunk.length} chars):`);
+    console.log(chunk);
     console.log('[Sender] Posting digest to Telegram...');
     const res = await fetch(url, {
       method: 'POST',
