@@ -52,7 +52,7 @@ export async function sendDigest(text) {
       body: JSON.stringify({
         chat_id: chatId,
         text: chunk,
-        parse_mode: 'HTML',
+        parse_mode: 'MarkdownV2',
       }),
     });
 
