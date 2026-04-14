@@ -14,83 +14,87 @@ function formatDate(date) {
   });
 }
 
-/** Escape characters that are special in Telegram HTML */
-function esc(str) {
+/** Escape text content for Telegram HTML */
+function escText(str) {
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
 
+/** Escape URL for use inside href="..." attribute */
+function escUrl(url) {
+  return String(url)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function formatHackerNewsItems(items) {
-  if (!items.length) return '<i>Kh├┤ng c├│ tin tß╗⌐c HackerNews h├┤m nay.</i>\n';
+  if (!items.length) return '<i>Khong co tin tuc HackerNews hom nay.</i>\n';
   return items
     .map((item) => {
       const pts = item.points ? ` <i>(${item.points} pts)</i>` : '';
       const link = item.url
-        ? `<a href="${item.url}">${esc(item.title)}</a>`
-        : esc(item.title);
-      return `ΓÇó ${link}${pts}`;
+        ? `<a href="${escUrl(item.url)}">${escText(item.title)}</a>`
+        : escText(item.title);
+      return `- ${link}${pts}`;
     })
     .join('\n');
 }
 
 function formatArXivItems(papers) {
-  if (!papers.length) return '<i>Kh├┤ng c├│ b├ái nghi├¬n cß╗⌐u ArXiv h├┤m nay.</i>\n';
+  if (!papers.length) return '<i>Khong co bai nghien cuu ArXiv hom nay.</i>\n';
   return papers
     .map((p) => {
       const link = p.url
-        ? `<a href="${p.url}">${esc(p.title)}</a>`
-        : esc(p.title);
+        ? `<a href="${escUrl(p.url)}">${escText(p.title)}</a>`
+        : escText(p.title);
       const abs = p.abstract
-        ? `\n  <i>${esc(p.abstract.slice(0, 200).replace(/\n/g, ' '))}ΓÇª</i>`
+        ? `\n  <i>${escText(p.abstract.slice(0, 200).replace(/\n/g, ' '))}...</i>`
         : '';
-      return `ΓÇó ${link}${abs}`;
+      return `- ${link}${abs}`;
     })
     .join('\n');
 }
 
 function formatHuggingFaceItems(papers) {
-  if (!papers.length) return '<i>Kh├┤ng c├│ trending papers HuggingFace h├┤m nay.</i>\n';
+  if (!papers.length) return '<i>Khong co trending papers HuggingFace hom nay.</i>\n';
   return papers
     .map((p) => {
       const link = p.url
-        ? `<a href="${p.url}">${esc(p.title)}</a>`
-        : esc(p.title);
-      return `ΓÇó ${link}`;
+        ? `<a href="${escUrl(p.url)}">${escText(p.title)}</a>`
+        : escText(p.title);
+      return `- ${link}`;
     })
     .join('\n');
 }
 
 /**
  * Build the final HTML digest for Telegram.
- *
- * @param {{ hackerNews: object[], arxiv: object[], huggingFace: object[] }} fetchedData
- * @param {string} summary  - AI-generated summary paragraph (Vietnamese)
- * @param {Date}   [now]    - Override date (useful for testing)
- * @returns {string}
  */
 export function formatDigest(fetchedData, summary, now = new Date()) {
   const { hackerNews, arxiv, huggingFace } = fetchedData;
   const dateStr = formatDate(now);
 
   const sections = [
-    `≡ƒñû <b>AI Daily Brief - ${esc(dateStr)}</b>`,
+    `<b>AI Daily Brief - ${escText(dateStr)}</b>`,
     '',
-    '≡ƒöÑ <b>Tin tß╗⌐c nß╗òi bß║¡t</b>',
+    '<b>Tin tuc noi bat (HackerNews)</b>',
     formatHackerNewsItems(hackerNews),
     '',
-    '≡ƒôä <b>Research Papers</b>',
+    '<b>Research Papers (ArXiv)</b>',
     formatArXivItems(arxiv),
     '',
-    '≡ƒñù <b>Trending tr├¬n HuggingFace</b>',
+    '<b>Trending tren HuggingFace</b>',
     formatHuggingFaceItems(huggingFace),
     '',
-    '≡ƒÆí <b>T├│m tß║»t cß╗ºa ng├áy</b>',
-    esc(summary),
+    '<b>Tom tat cua ngay</b>',
+    escText(summary),
     '',
-    `ΓÇöΓÇöΓÇö`,
-    `<i>─É╞░ß╗úc tß║ío tß╗▒ ─æß╗Öng l├║c ${esc(now.toISOString())} bß╗ƒi AI Daily Brief.</i>`,
+    '---',
+    `<i>Tu dong tao luc ${escText(now.toISOString())}</i>`,
   ];
 
   return sections.join('\n');
